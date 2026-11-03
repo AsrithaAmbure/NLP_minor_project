@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meeting Intelligence | NLP Project</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+</head>
+<body>
+
+<!-- ─── HEADER ──────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">MI</div>
+      <div>
+        <span class="eyebrow">NLP MINOR PROJECT</span>
+        <h1>Meeting Intelligence</h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="historyBtn" class="icon-btn" title="Analysis History">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </button>
+      <button id="themeBtn" class="icon-btn" title="Toggle Theme">
+        <svg id="themeIcon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- ─── HERO ──────────────────────────────────────────── -->
+  <section class="hero">
+    <span class="eyebrow">TURN CONVERSATIONS INTO CLARITY</span>
+    <h2>Know what was said.<br><span class="accent">Know what happens next.</span></h2>
+    <p class="hero-subtitle">
+      Analyze meeting transcripts to extract summaries, decisions, action items,
+      sentiment, speaker insights, and more&nbsp;— powered by NLP.
+    </p>
+  </section>
+
+  <!-- ─── INPUT ─────────────────────────────────────────── -->
+  <section class="card input-card">
+    <div class="card-header">
+      <div>
+        <span class="eyebrow">STEP 01</span>
+        <h3>Meeting Transcript</h3>
+      </div>
+      <div class="sample-btns">
+        <button class="chip-btn" onclick="loadSample(1)">📝 Team Standup</button>
+        <button class="chip-btn" onclick="loadSample(2)">📊 Product Meeting</button>
+      </div>
+    </div>
+
+    <form id="analyzeForm" enctype="multipart/form-data">
+      <label for="transcript">Paste conversation</label>
+      <textarea id="transcript" name="transcript" rows="8"
+        placeholder="Paste your meeting transcript here...&#10;&#10;Format: Speaker: Their dialogue&#10;Example:&#10;Ravi: We need to complete the project by November 10.&#10;Priya: I will develop the frontend by November 5."></textarea>
+
+      <div class="or-divider"><span>OR UPLOAD A TEXT FILE</span></div>
+      <div class="file-upload-row">
+        <input type="file" id="fileInput" name="transcript_file" accept=".txt">
+        <span class="badge">TXT</span>
+      </div>
+
+      <button type="submit" class="btn-primary" id="analyzeBtn">
+        <span>Analyze Meeting</span>
+        <span class="arrow">→</span>
+      </button>
+    </form>
+  </section>
+
+  <!-- ─── LOADING ───────────────────────────────────────── -->
+  <div id="loading" class="loading hidden">
+    <div class="spinner"></div>
+    <p>Analyzing your transcript&hellip;</p>
+  </div>
+
+  <!-- ─── ERROR ─────────────────────────────────────────── -->
+  <div id="errorMsg" class="alert hidden"></div>
+
+  <!-- ─── RESULTS ───────────────────────────────────────── -->
+  <section id="results" class="results hidden">
+
+    <!-- Header row -->
+    <div class="results-header">
+      <div>
+        <span class="eyebrow">STEP 02</span>
+        <h3>Meeting Report</h3>
+      </div>
+      <div class="download-btns">
+        <button class="btn-secondary" onclick="downloadTxt()">📄 Download TXT</button>
+        <button class="btn-secondary" onclick="copySummary()">📋 Copy Summary</button>
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <span class="stat-value" id="statWords">—</span>
+        <span class="stat-label">Words</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="statDuration">—</span>
+        <span class="stat-label">Est. Duration</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="statSentiment">—</span>
+        <span class="stat-label">Sentiment</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="statActions">—</span>
+        <span class="stat-label">Action Items</span>
+      </div>
+    </div>
+
+    <!-- Summary (always visible) -->
+    <div class="summary-card">
+      <span class="card-label">✦ AI SUMMARY</span>
+      <p id="summaryText" class="summary-text"></p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="topics"  role="tab">Topics &amp; Decisions</button>
+      <button class="tab"        data-tab="actions" role="tab">Action Items</button>
+      <button class="tab"        data-tab="speakers" role="tab">Speakers</button>
+      <button class="tab"        data-tab="insights" role="tab">Insights</button>
+    </div>
+
+    <!-- Tab panels -->
+    <div class="tab-panels">
+
+      <!-- Topics & Decisions -->
+      <div class="tab-panel active" id="tab-topics">
+        <div class="two-col">
+          <div class="card">
+            <span class="card-label">KEY TOPICS</span>
+            <div id="topicsChips" class="chips"></div>
+          </div>
+          <div class="card">
+            <span class="card-label">KEY DECISIONS</span>
+            <div id="decisionsList"></div>
+          </div>
+        </div>
+        <div class="card">
+          <span class="card-label">WORD CLOUD</span>
+          <div id="wordCloud" class="word-cloud"></div>
+        </div>
+      </div>
+
+      <!-- Action Items -->
+      <div class="tab-panel" id="tab-actions">
+        <div class="card">
+          <span class="card-label">ACTION ITEMS</span>
+          <div id="actionsTable" class="table-wrap"></div>
+        </div>
+      </div>
+
+      <!-- Speakers -->
+      <div class="tab-panel" id="tab-speakers">
+        <div class="two-col">
+          <div class="card">
+            <span class="card-label">PARTICIPATION</span>
+            <div id="speakerBars"></div>
+          </div>
+          <div class="card">
+            <span class="card-label">SPEAKER SENTIMENT</span>
+            <div id="speakerSentiment"></div>
+          </div>
+        </div>
+        <div class="card">
+          <span class="card-label">PEOPLE &amp; DATES DETECTED</span>
+          <div id="entitiesInfo"></div>
+        </div>
+      </div>
+
+      <!-- Insights -->
+      <div class="tab-panel" id="tab-insights">
+        <div class="two-col">
+          <div class="card">
+            <span class="card-label">OVERALL SENTIMENT</span>
+            <div id="sentimentDetail"></div>
+          </div>
+          <div class="card">
+            <span class="card-label">QUESTIONS RAISED</span>
+            <div id="questionsList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      ⚠ Review automatically extracted information before relying on it.
+      This system uses rule-based NLP extraction and may miss indirect tasks
+      or misunderstand ambiguous wording.
+    </p>
+  </section>
+</main>
+
+<!-- ─── HISTORY MODAL ───────────────────────────────────── -->
+<div id="historyModal" class="modal hidden" role="dialog">
+  <div class="modal-overlay" onclick="closeHistory()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>📋 Analysis History</h3>
+      <button class="icon-btn" onclick="closeHistory()">✕</button>
+    </div>
+    <div id="historyList" class="history-list"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="clearHistory()">🗑 Clear History</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TOAST ───────────────────────────────────────────── -->
+<div id="toast" class="toast hidden"></div>
+
+<footer>
+  <p>Built with Python, Flask &amp; NLP · Meeting Intelligence System</p>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
