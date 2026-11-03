@@ -6,6 +6,8 @@
 [![Deploy on Render](https://img.shields.io/badge/Render-Deploy-46E3B7?logo=render&logoColor=white)](https://render.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/AsrithaAmbure/NLP_minor_project)
+
 A smart meeting transcript analyzer that uses Natural Language Processing to extract actionable insights from your meetings. Paste or upload a transcript and get an instant, comprehensive meeting report.
 
 ---
